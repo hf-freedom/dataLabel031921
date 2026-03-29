@@ -34,16 +34,22 @@ router.beforeEach(async (to, from, next) => {
       const { usePermissionStore } = await import('@/stores/permission')
       const permissionStore = usePermissionStore()
       
-      const routes = await permissionStore.loadRoutes()
-      routes.forEach(route => {
-        router.addRoute(route)
-      })
-      router.addRoute({
-        path: '/:pathMatch(.*)*',
-        redirect: '/404'
-      } as any)
-      permissionStore.isRoutesLoaded = true
-      next({ ...to, replace: true })
+      // 只在路由未加载时加载动态路由，避免重复添加
+      if (!permissionStore.isRoutesLoaded) {
+        const routes = await permissionStore.loadRoutes()
+        routes.forEach(route => {
+          router.addRoute(route)
+        })
+        router.addRoute({
+          path: '/:pathMatch(.*)*',
+          redirect: '/404'
+        } as any)
+        permissionStore.isRoutesLoaded = true
+        // 重新导航到目标路由
+        next({ ...to, replace: true })
+      } else {
+        next()
+      }
     }
   } else {
     if (whiteList.includes(to.path)) {

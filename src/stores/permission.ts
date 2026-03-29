@@ -27,7 +27,8 @@ export const usePermissionStore = defineStore('permission', () => {
         if (typeof item.component === 'function') {
           route.component = item.component
         } else {
-          const componentPath = `./views/${item.component}.vue`
+          // 修正组件路径格式
+          const componentPath = `../views/${item.component}.vue`
           route.component = modules[componentPath]
         }
       }
