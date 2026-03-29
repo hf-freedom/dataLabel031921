@@ -15,21 +15,24 @@ export const usePermissionStore = defineStore('permission', () => {
     const modules = import.meta.glob('../views/**/*.vue')
     
     return routeItems.map(item => {
-      const route: RouteRecordRaw = {
+      const route: any = {
         path: item.path,
         name: item.name,
         meta: item.meta,
-        redirect: item.redirect,
-        children: item.children ? generateRoutes(item.children) : undefined
-      } as any
+        redirect: item.redirect
+      }
       
       if (item.component) {
         if (typeof item.component === 'function') {
           route.component = item.component
         } else {
-          const componentPath = `./views/${item.component}.vue`
+          const componentPath = `../views/${item.component}.vue`
           route.component = modules[componentPath]
         }
+      }
+      
+      if (item.children && item.children.length > 0) {
+        route.children = generateRoutes(item.children)
       }
       
       return route
