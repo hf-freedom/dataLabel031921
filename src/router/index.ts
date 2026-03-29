@@ -24,16 +24,19 @@ const router = createRouter({
 
 const whiteList = ['/login', '/404']
 
-router.beforeEach(async (to, from, next) => {
+const DASHBOARD_PATH = '/dashboard'
+let routesLoaded = false
+let isRedirecting = false
+
+export async function initRoutes() {
   const token = getToken()
+  if (!token || routesLoaded) return
   
-  if (token) {
-    if (to.path === '/login') {
-      next({ path: '/' })
-    } else {
-      const { usePermissionStore } = await import('@/stores/permission')
-      const permissionStore = usePermissionStore()
-      
+  try {
+    const { usePermissionStore } = await import('@/stores/permission')
+    const permissionStore = usePermissionStore()
+    
+    if (!permissionStore.isRoutesLoaded) {
       const routes = await permissionStore.loadRoutes()
       routes.forEach(route => {
         router.addRoute(route)
@@ -42,16 +45,37 @@ router.beforeEach(async (to, from, next) => {
         path: '/:pathMatch(.*)*',
         redirect: '/404'
       } as any)
-      permissionStore.isRoutesLoaded = true
-      next({ ...to, replace: true })
+      
+      routesLoaded = true
     }
-  } else {
-    if (whiteList.includes(to.path)) {
-      next()
-    } else {
-      next('/login')
-    }
+  } catch (error) {
+    console.error('Failed to load routes:', error)
   }
+}
+
+router.beforeEach(async (to, from, next) => {
+  const token = getToken()
+  
+  if (to.path === '/login' || to.path === '/404') {
+    next()
+    return
+  }
+  
+  if (!token) {
+    next('/login')
+    return
+  }
+  
+  if (to.path === '/') {
+    next(DASHBOARD_PATH)
+    return
+  }
+  
+  if (!routesLoaded) {
+    await initRoutes()
+  }
+  
+  next()
 })
 
 export default router

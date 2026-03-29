@@ -52,6 +52,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useUserStore } from '@/stores'
+import { initRoutes } from '@/router'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -77,7 +78,8 @@ const handleLogin = async () => {
   try {
     await userStore.login(loginForm)
     ElMessage.success('登录成功')
-    router.push('/')
+    await initRoutes()
+    router.push('/dashboard')
   } catch (error: any) {
     ElMessage.error(error.message || '登录失败')
   } finally {
