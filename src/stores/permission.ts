@@ -12,8 +12,6 @@ export const usePermissionStore = defineStore('permission', () => {
   const menuRoutes = computed(() => routes.value)
 
   const generateRoutes = (routeItems: any[]): RouteRecordRaw[] => {
-    const modules = import.meta.glob('../views/**/*.vue')
-    
     return routeItems.map(item => {
       const route: RouteRecordRaw = {
         path: item.path,
@@ -27,8 +25,7 @@ export const usePermissionStore = defineStore('permission', () => {
         if (typeof item.component === 'function') {
           route.component = item.component
         } else {
-          const componentPath = `./views/${item.component}.vue`
-          route.component = modules[componentPath]
+          route.component = () => import(`@/views/${item.component}.vue`)
         }
       }
       
@@ -43,41 +40,40 @@ export const usePermissionStore = defineStore('permission', () => {
     
     const mockRoutes = [
       {
-        path: '/',
+        path: '/dashboard',
+        name: 'Dashboard',
         component: Layout,
-        redirect: '/dashboard',
         children: [
           {
-            path: '/dashboard',
-            name: 'Dashboard',
+            path: '',
             component: 'dashboard/index',
             meta: { title: '仪表盘', icon: 'DataBoard' }
+          }
+        ]
+      },
+      {
+        path: '/system',
+        component: Layout,
+        redirect: '/system/user',
+        meta: { title: '系统管理', icon: 'Setting' },
+        children: [
+          {
+            path: 'user',
+            name: 'User',
+            component: 'system/user/index',
+            meta: { title: '用户管理', icon: 'User' }
           },
           {
-            path: '/system',
-            name: 'System',
-            redirect: '/system/user',
-            meta: { title: '系统管理', icon: 'Setting' },
-            children: [
-              {
-                path: '/system/user',
-                name: 'User',
-                component: 'system/user/index',
-                meta: { title: '用户管理', icon: 'User' }
-              },
-              {
-                path: '/system/role',
-                name: 'Role',
-                component: 'system/role/index',
-                meta: { title: '角色管理', icon: 'UserFilled' }
-              },
-              {
-                path: '/system/permission',
-                name: 'Permission',
-                component: 'system/permission/index',
-                meta: { title: '权限管理', icon: 'Lock' }
-              }
-            ]
+            path: 'role',
+            name: 'Role',
+            component: 'system/role/index',
+            meta: { title: '角色管理', icon: 'UserFilled' }
+          },
+          {
+            path: 'permission',
+            name: 'Permission',
+            component: 'system/permission/index',
+            meta: { title: '权限管理', icon: 'Lock' }
           }
         ]
       }
